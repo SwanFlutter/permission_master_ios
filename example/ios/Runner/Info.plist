@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Permission Master Ios</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>permission_master_ios_example</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	
+	<!-- ==================== PERMISSION DESCRIPTIONS ==================== -->
+	<!-- These descriptions are required for iOS permissions -->
+	<!-- They will be shown to users when requesting permissions -->
+	
+	<!-- 1. Camera Permission -->
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to take photos and record videos</string>
+	
+	<!-- 2. Photo Library Permissions -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to select and view photos</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs permission to save photos to your photo library</string>
+	
+	<!-- 3. Microphone Permission -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs microphone access to record audio</string>
+	
+	<!-- 4. Location Permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs your location to show nearby places</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs your location to track your activity</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs continuous location access for background tracking</string>
+	
+	<!-- 5. Contacts Permission -->
+	<key>NSContactsUsageDescription</key>
+	<string>This app needs access to your contacts to help you connect with friends</string>
+	
+	<!-- 6. Calendar Permission -->
+	<key>NSCalendarsUsageDescription</key>
+	<string>This app needs access to your calendar to manage events</string>
+	
+	<!-- 7. Reminders Permission -->
+	<key>NSRemindersUsageDescription</key>
+	<string>This app needs access to your reminders to create and manage tasks</string>
+	
+	<!-- 8. Bluetooth Permissions -->
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>This app needs Bluetooth access to connect to nearby devices</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>This app needs Bluetooth access to communicate with accessories</string>
+	
+	<!-- 9. Motion & Fitness Permission -->
+	<key>NSMotionUsageDescription</key>
+	<string>This app needs motion access to track your physical activity and fitness</string>
+	
+	<!-- 10. Speech Recognition Permission -->
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app needs speech recognition to convert your voice to text</string>
+	
+	<!-- 11. Media Library Permission -->
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app needs access to your music library to play songs</string>
+	<key>kTCCServiceMediaLibrary</key>
+	<string>This app needs access to your media library</string>
+	
+	<!-- 12. Health Data Permissions -->
+	<key>NSHealthShareUsageDescription</key>
+	<string>This app needs to read your health data to track your wellness</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>This app needs to update your health data to record your activities</string>
+	
+	<!-- ==================== END PERMISSIONS ==================== -->
+</dict>
+</plist>
