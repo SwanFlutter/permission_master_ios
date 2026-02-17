@@ -60,12 +60,17 @@ class _PermissionDemoPageState extends State<PermissionDemoPage> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('$name: ${status.name}'),
-            backgroundColor: _getStatusColor(status),
-          ),
-        );
+        // If permission is denied, show dialog to open settings
+        if (status == PermissionStatus.denied) {
+          _showOpenSettingsDialog(name);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$name: ${status.name}'),
+              backgroundColor: _getStatusColor(status),
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -74,6 +79,56 @@ class _PermissionDemoPageState extends State<PermissionDemoPage> {
         );
       }
     }
+  }
+
+  Future<void> _showOpenSettingsDialog(String permissionName) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Permission Denied'),
+          content: Text(
+            '$permissionName permission was denied. Would you like to open settings to enable it?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  final opened = await _plugin.openAppSettings();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          opened
+                              ? 'Settings opened successfully'
+                              : 'Failed to open settings',
+                        ),
+                        backgroundColor: opened ? Colors.green : Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Error opening settings: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Color _getStatusColor(PermissionStatus status) {
@@ -228,6 +283,16 @@ class _PermissionDemoPageState extends State<PermissionDemoPage> {
             label: const Text('Test Storage'),
             style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16)),
           ),
+          const SizedBox(height: 12),
+          ElevatedButton.icon(
+            onPressed: _testOpenSettings,
+            icon: const Icon(Icons.settings),
+            label: const Text('Test Open Settings'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.all(16),
+              backgroundColor: Colors.orange,
+            ),
+          ),
         ],
       ),
     );
@@ -294,6 +359,39 @@ class _PermissionDemoPageState extends State<PermissionDemoPage> {
           SnackBar(
             content: Text('Storage test failed: $e'),
             backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _testOpenSettings() async {
+    try {
+      print('🔧 Testing openAppSettings...');
+      final result = await _plugin.openAppSettings();
+      print('🔧 openAppSettings result: $result');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result
+                  ? '✅ Settings opened successfully!'
+                  : '❌ Failed to open settings',
+            ),
+            backgroundColor: result ? Colors.green : Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('🔧 Error in openAppSettings: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
       }

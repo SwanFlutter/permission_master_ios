@@ -80,16 +80,24 @@ public class PermissionMasterIosPlugin: NSObject, FlutterPlugin, CLLocationManag
   
   // MARK: - Open Settings
   private func openAppSettings(result: @escaping FlutterResult) {
+    print("🔧 [Swift] openAppSettings called")
+    
     guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
+      print("❌ [Swift] Failed to create settings URL")
       result(false)
       return
     }
     
+    print("🔧 [Swift] Settings URL: \(settingsUrl)")
+    
     if UIApplication.shared.canOpenURL(settingsUrl) {
-      UIApplication.shared.open(settingsUrl) { success in
+      print("✅ [Swift] Can open settings URL, attempting to open...")
+      UIApplication.shared.open(settingsUrl, options: [:]) { success in
+        print("🔧 [Swift] Open result: \(success)")
         result(success)
       }
     } else {
+      print("❌ [Swift] Cannot open settings URL")
       result(false)
     }
   }
