@@ -170,6 +170,14 @@ public class PermissionMasterIosPlugin: NSObject, FlutterPlugin, CLLocationManag
       result(mapPhotosStatus(PHPhotoLibrary.authorizationStatus(for: .readWrite)))
     case "microphone":
       result(mapMicrophoneStatus(AVAudioSession.sharedInstance().recordPermission))
+    case "health":
+      if !HKHealthStore.isHealthDataAvailable() {
+        result("unsupported")
+      } else {
+        let stepCountType = HKObjectType.quantityType(forIdentifier: .stepCount)!
+        let status = healthStore.authorizationStatus(for: stepCountType)
+        result(mapHealthStatus(status))
+      }
     default:
       result("notDetermined")
     }
@@ -393,22 +401,59 @@ public class PermissionMasterIosPlugin: NSObject, FlutterPlugin, CLLocationManag
   }
 
   private func requestHealthPermission(result: @escaping FlutterResult) {
+    print("🔧 [Swift] requestHealthPermission called")
+    
     if !HKHealthStore.isHealthDataAvailable() {
+      print("❌ [Swift] Health data not available on this device")
       result("unsupported")
       return
     }
-    let status = healthStore.authorizationStatus(for: HKObjectType.workoutType())
-    if status == .notDetermined {
-      let readTypes: Set<HKObjectType> = [HKObjectType.workoutType()]
-      let writeTypes: Set<HKSampleType> = []
-      healthStore.requestAuthorization(toShare: writeTypes, read: readTypes) { success, _ in
-        DispatchQueue.main.async {
-          result(success ? "granted" : "denied")
+    
+    // Define health data types to read
+    let readTypes: Set<HKObjectType> = [
+      HKObjectType.workoutType(),
+      HKObjectType.quantityType(forIdentifier: .stepCount)!,
+      HKObjectType.quantityType(forIdentifier: .heartRate)!,
+      HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
+      HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)!,
+    ]
+    
+    // Define health data types to write (optional)
+    let writeTypes: Set<HKSampleType> = [
+      HKObjectType.workoutType(),
+      HKObjectType.quantityType(forIdentifier: .stepCount)!,
+    ]
+    
+    print("🔧 [Swift] Requesting Health authorization...")
+    
+    healthStore.requestAuthorization(toShare: writeTypes, read: readTypes) { success, error in
+      DispatchQueue.main.async {
+        if let error = error {
+          print("❌ [Swift] Health authorization error: \(error.localizedDescription)")
+          result("denied")
+          return
+        }
+        
+        print("✅ [Swift] Health authorization success: \(success)")
+        
+        // Check the actual status for one of the types
+        let stepCountType = HKObjectType.quantityType(forIdentifier: .stepCount)!
+        let status = self.healthStore.authorizationStatus(for: stepCountType)
+        
+        print("🔧 [Swift] Health status: \(status.rawValue)")
+        
+        switch status {
+        case .notDetermined:
+          result("notDetermined")
+        case .sharingAuthorized:
+          result("granted")
+        case .sharingDenied:
+          result("denied")
+        @unknown default:
+          result("notDetermined")
         }
       }
-      return
     }
-    result(mapHealthStatus(status))
   }
 
   private func mapCameraStatus(_ status: AVAuthorizationStatus) -> String {
