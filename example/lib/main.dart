@@ -289,7 +289,19 @@ class _PermissionDemoPageState extends State<PermissionDemoPage> {
           _buildPermissionTile(
             'Health',
             Icons.favorite,
-            () => _requestPermission('Health', _plugin.requestHealthPermission),
+            _requestHealthPermission,
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              '⚠️ Health only works on real iOS devices, not Simulator',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.orange,
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -408,6 +420,58 @@ class _PermissionDemoPageState extends State<PermissionDemoPage> {
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
+        );
+      }
+    }
+  }
+
+  Future<void> _requestHealthPermission() async {
+    try {
+      final status = await _plugin.requestHealthPermission();
+      setState(() {
+        _permissionStatuses['Health'] = status;
+      });
+
+      if (mounted) {
+        if (status == PermissionStatus.unsupported) {
+          // Show special dialog for unsupported (Simulator)
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('⚠️ Not Available'),
+              content: const Text(
+                'Health data is only available on real iOS devices.\n\n'
+                'Please test this permission on an iPhone, not Simulator.\n\n'
+                'Health permission allows access to:\n'
+                '• Step Count\n'
+                '• Heart Rate\n'
+                '• Workouts\n'
+                '• Active Energy\n'
+                '• Walking + Running Distance',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        } else if (status == PermissionStatus.denied) {
+          _showOpenSettingsDialog('Health');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Health: ${status.name}'),
+              backgroundColor: _getStatusColor(status),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
