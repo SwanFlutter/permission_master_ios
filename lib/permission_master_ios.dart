@@ -134,6 +134,12 @@ PermissionStatus _parseStatus(String status) {
       return PermissionStatus.restricted;
     case 'limited':
       return PermissionStatus.limited;
+    case 'unsupported':
+      return PermissionStatus.unsupported;
+    case 'openSettings':
+      return PermissionStatus.openSettings;
+    case 'error':
+      return PermissionStatus.error;
     default:
       return PermissionStatus.notDetermined;
   }

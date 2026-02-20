@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:permission_master_ios/permission_master_ios.dart';
 
@@ -63,6 +65,15 @@ class _PermissionDemoPageState extends State<PermissionDemoPage> {
         // If permission is denied, show dialog to open settings
         if (status == PermissionStatus.denied) {
           _showOpenSettingsDialog(name);
+        } else if (status == PermissionStatus.unsupported) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '$name: This permission is not supported on this device',
+              ),
+              backgroundColor: _getStatusColor(status),
+            ),
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -141,6 +152,8 @@ class _PermissionDemoPageState extends State<PermissionDemoPage> {
         return Colors.orange;
       case PermissionStatus.limited:
         return Colors.amber;
+      case PermissionStatus.unsupported:
+        return Colors.blueGrey;
       default:
         return Colors.grey;
     }
@@ -156,6 +169,8 @@ class _PermissionDemoPageState extends State<PermissionDemoPage> {
         return Icons.block;
       case PermissionStatus.limited:
         return Icons.warning;
+      case PermissionStatus.unsupported:
+        return Icons.do_not_disturb_on;
       default:
         return Icons.help;
     }

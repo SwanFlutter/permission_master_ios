@@ -394,7 +394,7 @@ public class PermissionMasterIosPlugin: NSObject, FlutterPlugin, CLLocationManag
 
   private func requestHealthPermission(result: @escaping FlutterResult) {
     if !HKHealthStore.isHealthDataAvailable() {
-      result("restricted")
+      result("unsupported")
       return
     }
     let status = healthStore.authorizationStatus(for: HKObjectType.workoutType())
