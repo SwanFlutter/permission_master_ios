@@ -202,7 +202,7 @@ enum PermissionStatus {
 
 ```dart
 Future<void> requestCameraAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses AVCaptureDevice under the hood
   final status = await permissionMaster.requestCameraPermission();
@@ -230,7 +230,7 @@ Future<void> requestCameraAccessiOS() async {
 
 ```dart
 Future<void> requestPhotosAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses PHPhotoLibrary under the hood
   final status = await permissionMaster.requestPhotosPermission();
@@ -261,7 +261,7 @@ Future<void> requestPhotosAccessiOS() async {
 
 ```dart
 Future<void> requestMicrophoneAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses AVAudioSession under the hood
   final status = await permissionMaster.requestMicrophonePermission();
@@ -289,7 +289,7 @@ Future<void> requestMicrophoneAccessiOS() async {
 
 ```dart
 Future<void> requestLocationAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses CLLocationManager under the hood
   final status = await permissionMaster.requestLocationPermission();
@@ -317,7 +317,7 @@ Future<void> requestLocationAccessiOS() async {
 
 ```dart
 Future<void> requestContactsAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses CNContactStore under the hood
   final status = await permissionMaster.requestContactsPermission();
@@ -345,7 +345,7 @@ Future<void> requestContactsAccessiOS() async {
 
 ```dart
 Future<void> requestCalendarAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses EKEventStore under the hood
   final status = await permissionMaster.requestCalendarPermission();
@@ -373,7 +373,7 @@ Future<void> requestCalendarAccessiOS() async {
 
 ```dart
 Future<void> requestRemindersAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses EKEventStore (reminders entity) under the hood
   final status = await permissionMaster.requestRemindersPermission();
@@ -401,7 +401,7 @@ Future<void> requestRemindersAccessiOS() async {
 
 ```dart
 Future<void> requestNotificationAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses UNUserNotificationCenter under the hood
   final status = await permissionMaster.requestNotificationPermission();
@@ -426,7 +426,7 @@ Future<void> requestNotificationAccessiOS() async {
 
 ```dart
 Future<void> requestBluetoothAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses CBCentralManager under the hood
   final status = await permissionMaster.requestBluetoothPermission();
@@ -454,7 +454,7 @@ Future<void> requestBluetoothAccessiOS() async {
 
 ```dart
 Future<void> requestMotionAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses CMMotionActivityManager under the hood
   final status = await permissionMaster.requestMotionPermission();
@@ -482,7 +482,7 @@ Future<void> requestMotionAccessiOS() async {
 
 ```dart
 Future<void> requestSpeechAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses SFSpeechRecognizer under the hood
   final status = await permissionMaster.requestSpeechPermission();
@@ -510,7 +510,7 @@ Future<void> requestSpeechAccessiOS() async {
 
 ```dart
 Future<void> requestMusicAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses MPMediaLibrary under the hood
   final status = await permissionMaster.requestMusicPermission();
@@ -538,7 +538,7 @@ Future<void> requestMusicAccessiOS() async {
 
 ```dart
 Future<void> requestHealthAccessiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // iOS uses HKHealthStore under the hood
   final status = await permissionMaster.requestHealthPermission();
@@ -566,7 +566,7 @@ Future<void> requestHealthAccessiOS() async {
 
 ```dart
 Future<void> checkPermissionStatusiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // Check status without triggering a system dialog
   // Works with any PermissionType value
@@ -604,7 +604,7 @@ Future<void> checkPermissionStatusiOS() async {
 
 ```dart
 Future<void> openAppSettingsiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
 
   // Navigates user directly to this app's page in iOS Settings
   final opened = await permissionMaster.openAppSettings();
@@ -625,7 +625,7 @@ Future<void> openAppSettingsiOS() async {
 
 ```dart
 Future<void> useStorageiOS() async {
-  final permissionMaster = PermissionMasterIos();
+  final permissionMaster = PermissionMaster();
   final storage = permissionMaster.storage;
 
   // ✍️ Write different data types
@@ -672,7 +672,7 @@ Future<void> useStorageiOS() async {
 
 ```dart
 Future<void> completePermissionFlowiOS(BuildContext context) async {
-  final plugin = PermissionMasterIos();
+  final plugin = PermissionMaster();
 
   // Step 1: Check current status without showing a dialog
   final currentStatus = await plugin.checkPermissionStatus(PermissionType.camera);
@@ -778,7 +778,7 @@ Future<bool?> _showGoToSettingsDialog(BuildContext context) {
 
 ```dart
 class UserPreferences {
-  final _storage = PermissionMasterIos().storage;
+  final _storage = PermissionMaster().storage;
 
   // Save user preferences
   Future<void> savePreferences({
