@@ -1,37 +1,35 @@
-Here is the English version of your **Permission Master iOS** Flutter plugin documentation:
-
----
-
 # Permission Master iOS
 
 A Flutter plugin for managing iOS permissions with data storage capabilities.
 
 ## Features
 
-✅ Full iOS permission management
-✅ Support for 13 different permission types
-✅ Data storage using UserDefaults
-✅ Compatible with App Store standards
-✅ Supports iOS 12.0 and above
-✅ Smart permission request count management
+✅ Full iOS permission management  
+✅ Support for 13 different permission types  
+✅ Data storage using UserDefaults  
+✅ Compatible with App Store standards  
+✅ Supports iOS 12.0 and above  
+✅ Smart permission request count management  
+
+---
 
 ## Supported Permissions
 
-| Permission      | Description                     |
-|-----------------|---------------------------------|
-| 📷 Camera        | Access to the camera            |
-| 🖼️ Photos        | Access to the photo library     |
-| 🎤 Microphone    | Access to the microphone        |
-| 📍 Location      | Access to location services     |
-| 👥 Contacts      | Access to contacts              |
-| 📅 Calendar      | Access to calendar events       |
-| ⏰ Reminders     | Access to reminders             |
-| 🔔 Notifications | Access to notifications         |
-| 📶 Bluetooth     | Access to Bluetooth             |
-| 🏃 Motion        | Access to motion & fitness      |
-| 🗣️ Speech        | Access to speech recognition    |
-| 🎵 Music         | Access to the media library     |
-| ❤️ Health        | Access to health data           |
+| Permission       | Description                    |
+|------------------|--------------------------------|
+| 📷 Camera        | Access to the camera           |
+| 🖼️ Photos        | Access to the photo library    |
+| 🎤 Microphone    | Access to the microphone       |
+| 📍 Location      | Access to location services    |
+| 👥 Contacts      | Access to contacts             |
+| 📅 Calendar      | Access to calendar events      |
+| ⏰ Reminders     | Access to reminders            |
+| 🔔 Notifications | Access to notifications        |
+| 📶 Bluetooth     | Access to Bluetooth            |
+| 🏃 Motion        | Access to motion & fitness     |
+| 🗣️ Speech        | Access to speech recognition   |
+| 🎵 Music         | Access to the media library    |
+| ❤️ Health        | Access to health data          |
 
 ---
 
@@ -124,7 +122,6 @@ If `ios/Podfile` does not exist, create it:
 # ios/Podfile
 platform :ios, '12.0'
 
-# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
@@ -153,14 +150,12 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
-
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
-
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
     end
@@ -184,457 +179,606 @@ cd ..
 
 ---
 
-## Usage
-
-### Practical Examples
-
-#### 📷 Camera Permission
+## Permission Statuses
 
 ```dart
-import 'package:permission_master_ios/permission_master_ios.dart';
+enum PermissionStatus {
+  granted,        // Permission granted
+  denied,         // Permission denied
+  restricted,     // Restricted (parental controls, MDM, etc.)
+  limited,        // Limited access (e.g. selected photos on iOS 14+)
+  notDetermined,  // Not requested yet
+  openSettings,   // Needs to open Settings to change
+  unsupported,    // Not supported on this device
+  error           // An error occurred
+}
+```
 
-Future<void> requestCameraAccess() async {
+---
+
+## Usage
+
+### 📷 Camera Permission
+
+```dart
+Future<void> requestCameraAccessiOS() async {
   final permissionMaster = PermissionMasterIos();
 
+  // iOS uses AVCaptureDevice under the hood
   final status = await permissionMaster.requestCameraPermission();
 
   if (status == PermissionStatus.granted) {
-    // Camera access granted - can use camera
-    print('Camera permission granted - can capture photos/videos');
+    // Camera access granted - can use AVCaptureSession
+    print('Camera permission granted - can use AVCaptureSession');
   } else if (status == PermissionStatus.denied) {
-    print('Camera permission denied');
+    print('Camera access denied. Enable in Settings > Privacy & Security > Camera');
   } else if (status == PermissionStatus.restricted) {
-    print('Camera access restricted (parental controls)');
+    // Parental controls or MDM policy preventing access
+    print('Camera access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting camera permission');
   }
 }
 ```
 
-#### 🖼️ Photos Permission
+---
+
+### 🖼️ Photos Permission
 
 ```dart
-Future<void> requestPhotosAccess() async {
+Future<void> requestPhotosAccessiOS() async {
   final permissionMaster = PermissionMasterIos();
 
+  // iOS uses PHPhotoLibrary under the hood
   final status = await permissionMaster.requestPhotosPermission();
 
   if (status == PermissionStatus.granted) {
-    // Full photo library access
-    print('Photos permission granted - full access');
+    // Full photo library access granted
+    print('Photos permission granted - full PHPhotoLibrary access');
   } else if (status == PermissionStatus.limited) {
-    // Limited photo library access (iOS 14+)
-    print('Photos permission limited - selected photos only');
+    // iOS 14+ only: user selected specific photos
+    print('Photos permission limited - selected photos only (iOS 14+)');
   } else if (status == PermissionStatus.denied) {
-    print('Photos permission denied');
+    print('Photos access denied. Enable in Settings > Privacy & Security > Photos');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Photos access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting photos permission');
   }
 }
 ```
 
-#### 🎤 Microphone Permission
+---
+
+### 🎤 Microphone Permission
 
 ```dart
-Future<void> requestMicrophoneAccess() async {
+Future<void> requestMicrophoneAccessiOS() async {
   final permissionMaster = PermissionMasterIos();
 
+  // iOS uses AVAudioSession under the hood
   final status = await permissionMaster.requestMicrophonePermission();
 
   if (status == PermissionStatus.granted) {
-    // Microphone access granted - can record audio
-    print('Microphone permission granted - can record audio');
+    // Microphone access granted - can use AVAudioSession
+    print('Microphone permission granted - can use AVAudioSession');
   } else if (status == PermissionStatus.denied) {
-    print('Microphone permission denied');
+    print('Microphone access denied. Enable in Settings > Privacy & Security > Microphone');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Microphone access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting microphone permission');
   }
 }
 ```
 
-#### 📍 Location Permission
+---
+
+### 📍 Location Permission
 
 ```dart
-Future<void> requestLocationAccess() async {
+Future<void> requestLocationAccessiOS() async {
   final permissionMaster = PermissionMasterIos();
 
+  // iOS uses CLLocationManager under the hood
   final status = await permissionMaster.requestLocationPermission();
 
   if (status == PermissionStatus.granted) {
-    // Location access granted - can access user location
-    print('Location permission granted - can access GPS');
+    // Location access granted - can use CLLocationManager
+    print('Location permission granted - can use CLLocationManager');
   } else if (status == PermissionStatus.denied) {
-    print('Location permission denied');
+    print('Location access denied. Enable in Settings > Privacy & Security > Location Services');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Location access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting location permission');
   }
 }
 ```
 
-#### 🔔 Notification Permission
+---
+
+### 👥 Contacts Permission
 
 ```dart
-Future<void> requestNotificationAccess() async {
+Future<void> requestContactsAccessiOS() async {
   final permissionMaster = PermissionMasterIos();
 
-  final status = await permissionMaster.requestNotificationPermission();
-
-  if (status == PermissionStatus.granted) {
-    // Can send notifications
-    print('Notification permission granted - can send push notifications');
-  } else if (status == PermissionStatus.denied) {
-    print('Notification permission denied');
-  }
-}
-```
-
-#### 👥 Contacts Permission
-
-```dart
-Future<void> requestContactsAccess() async {
-  final permissionMaster = PermissionMasterIos();
-
+  // iOS uses CNContactStore under the hood
   final status = await permissionMaster.requestContactsPermission();
 
   if (status == PermissionStatus.granted) {
-    // Can access contacts
-    print('Contacts permission granted - can read/write contacts');
+    // Contacts access granted - can use CNContactStore
+    print('Contacts permission granted - can use CNContactStore');
   } else if (status == PermissionStatus.denied) {
-    print('Contacts permission denied');
+    print('Contacts access denied. Enable in Settings > Privacy & Security > Contacts');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Contacts access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting contacts permission');
   }
 }
 ```
 
-#### 📅 Calendar Permission
+---
+
+### 📅 Calendar Permission
 
 ```dart
-Future<void> requestCalendarAccess() async {
+Future<void> requestCalendarAccessiOS() async {
   final permissionMaster = PermissionMasterIos();
 
+  // iOS uses EKEventStore under the hood
   final status = await permissionMaster.requestCalendarPermission();
 
   if (status == PermissionStatus.granted) {
-    // Can access calendar events
-    print('Calendar permission granted - can manage events');
+    // Calendar access granted - can use EKEventStore
+    print('Calendar permission granted - can use EKEventStore');
   } else if (status == PermissionStatus.denied) {
-    print('Calendar permission denied');
+    print('Calendar access denied. Enable in Settings > Privacy & Security > Calendars');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Calendar access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting calendar permission');
   }
 }
 ```
 
-#### 💾 Storage (UserDefaults)
+---
+
+### ⏰ Reminders Permission
 
 ```dart
-Future<void> useStorage() async {
+Future<void> requestRemindersAccessiOS() async {
+  final permissionMaster = PermissionMasterIos();
+
+  // iOS uses EKEventStore (reminders entity) under the hood
+  final status = await permissionMaster.requestRemindersPermission();
+
+  if (status == PermissionStatus.granted) {
+    // Reminders access granted - can use EKEventStore with reminders
+    print('Reminders permission granted - can use EKEventStore for reminders');
+  } else if (status == PermissionStatus.denied) {
+    print('Reminders access denied. Enable in Settings > Privacy & Security > Reminders');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Reminders access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting reminders permission');
+  }
+}
+```
+
+---
+
+### 🔔 Notifications Permission
+
+```dart
+Future<void> requestNotificationAccessiOS() async {
+  final permissionMaster = PermissionMasterIos();
+
+  // iOS uses UNUserNotificationCenter under the hood
+  final status = await permissionMaster.requestNotificationPermission();
+
+  if (status == PermissionStatus.granted) {
+    // Notifications granted - can use UNUserNotificationCenter
+    print('Notification permission granted - can use UNUserNotificationCenter');
+  } else if (status == PermissionStatus.denied) {
+    print('Notifications denied. Enable in Settings > Notifications > [App Name]');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting notification permission');
+  }
+}
+```
+
+---
+
+### 📶 Bluetooth Permission
+
+```dart
+Future<void> requestBluetoothAccessiOS() async {
+  final permissionMaster = PermissionMasterIos();
+
+  // iOS uses CBCentralManager under the hood
+  final status = await permissionMaster.requestBluetoothPermission();
+
+  if (status == PermissionStatus.granted) {
+    // Bluetooth access granted - can use CBCentralManager
+    print('Bluetooth permission granted - can use CBCentralManager');
+  } else if (status == PermissionStatus.denied) {
+    print('Bluetooth access denied. Enable in Settings > Privacy & Security > Bluetooth');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Bluetooth access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting Bluetooth permission');
+  }
+}
+```
+
+---
+
+### 🏃 Motion & Fitness Permission
+
+```dart
+Future<void> requestMotionAccessiOS() async {
+  final permissionMaster = PermissionMasterIos();
+
+  // iOS uses CMMotionActivityManager under the hood
+  final status = await permissionMaster.requestMotionPermission();
+
+  if (status == PermissionStatus.granted) {
+    // Motion access granted - can use CMMotionActivityManager
+    print('Motion permission granted - can use CMMotionActivityManager');
+  } else if (status == PermissionStatus.denied) {
+    print('Motion access denied. Enable in Settings > Privacy & Security > Motion & Fitness');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Motion access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting motion permission');
+  }
+}
+```
+
+---
+
+### 🗣️ Speech Recognition Permission
+
+```dart
+Future<void> requestSpeechAccessiOS() async {
+  final permissionMaster = PermissionMasterIos();
+
+  // iOS uses SFSpeechRecognizer under the hood
+  final status = await permissionMaster.requestSpeechPermission();
+
+  if (status == PermissionStatus.granted) {
+    // Speech recognition granted - can use SFSpeechRecognizer
+    print('Speech recognition granted - can use SFSpeechRecognizer');
+  } else if (status == PermissionStatus.denied) {
+    print('Speech recognition denied. Enable in Settings > Privacy & Security > Speech Recognition');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Speech recognition restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting speech recognition permission');
+  }
+}
+```
+
+---
+
+### 🎵 Media Library (Music) Permission
+
+```dart
+Future<void> requestMusicAccessiOS() async {
+  final permissionMaster = PermissionMasterIos();
+
+  // iOS uses MPMediaLibrary under the hood
+  final status = await permissionMaster.requestMusicPermission();
+
+  if (status == PermissionStatus.granted) {
+    // Media library access granted - can use MPMediaLibrary
+    print('Media library permission granted - can use MPMediaLibrary');
+  } else if (status == PermissionStatus.denied) {
+    print('Media library access denied. Enable in Settings > Privacy & Security > Media & Apple Music');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Media library access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting media library permission');
+  }
+}
+```
+
+---
+
+### ❤️ Health Permission
+
+```dart
+Future<void> requestHealthAccessiOS() async {
+  final permissionMaster = PermissionMasterIos();
+
+  // iOS uses HKHealthStore under the hood
+  final status = await permissionMaster.requestHealthPermission();
+
+  if (status == PermissionStatus.granted) {
+    // Health access granted - can use HKHealthStore
+    print('Health permission granted - can use HKHealthStore');
+  } else if (status == PermissionStatus.denied) {
+    print('Health access denied. Enable in Settings > Privacy & Security > Health');
+  } else if (status == PermissionStatus.restricted) {
+    // Parental controls or MDM policy preventing access
+    print('Health access restricted by device policy or parental controls');
+  } else if (status == PermissionStatus.openSettings) {
+    // User previously denied - must go to Settings manually
+    await permissionMaster.openAppSettings();
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while requesting health permission');
+  }
+}
+```
+
+---
+
+### 🔍 Check Permission Status (Without Requesting)
+
+```dart
+Future<void> checkPermissionStatusiOS() async {
+  final permissionMaster = PermissionMasterIos();
+
+  // Check status without triggering a system dialog
+  // Works with any PermissionType value
+  final status = await permissionMaster.checkPermissionStatus(
+    PermissionType.camera,
+  );
+
+  if (status == PermissionStatus.granted) {
+    // Already granted - proceed directly with the feature
+    print('Permission already granted - no need to request');
+  } else if (status == PermissionStatus.notDetermined) {
+    // Not yet asked - safe to call the request method
+    print('Permission not requested yet - will show system dialog on request');
+  } else if (status == PermissionStatus.denied) {
+    // Previously denied - must guide user to iOS Settings
+    print('Permission previously denied - guide user to iOS Settings');
+  } else if (status == PermissionStatus.restricted) {
+    // Cannot be changed by user (parental controls / MDM)
+    print('Permission restricted - cannot be changed by the user');
+  } else if (status == PermissionStatus.limited) {
+    // Partial access only (e.g. Photos on iOS 14+)
+    print('Permission limited - partial access only');
+  } else if (status == PermissionStatus.unsupported) {
+    // This permission is not available on the current device
+    print('Permission not supported on this device');
+  } else if (status == PermissionStatus.error) {
+    print('An error occurred while checking permission status');
+  }
+}
+```
+
+---
+
+### ⚙️ Open App Settings
+
+```dart
+Future<void> openAppSettingsiOS() async {
+  final permissionMaster = PermissionMasterIos();
+
+  // Navigates user directly to this app's page in iOS Settings
+  final opened = await permissionMaster.openAppSettings();
+
+  if (opened) {
+    // iOS Settings app opened successfully
+    print('iOS Settings opened - user can now change permissions manually');
+  } else {
+    // Rare edge case - Settings URL scheme unavailable
+    print('Failed to open iOS Settings');
+  }
+}
+```
+
+---
+
+### 💾 Storage (UserDefaults)
+
+```dart
+Future<void> useStorageiOS() async {
   final permissionMaster = PermissionMasterIos();
   final storage = permissionMaster.storage;
 
-  // Write data
+  // ✍️ Write different data types
   await storage.write('username', 'Ali');
   await storage.write('age', 25);
-  await storage.write('settings', {'theme': 'dark', 'language': 'fa'});
+  await storage.write('isLoggedIn', true);
+  await storage.write('score', 95.5);
+  await storage.write('settings', {
+    'theme': 'dark',
+    'language': 'en',
+    'notifications': true,
+  });
 
-  // Read data
-  final username = await storage.read('username', '');
-  final age = await storage.read('age', 0);
-  final settings = await storage.read('settings', <String, dynamic>{});
+  // 📖 Read data with default fallback values
+  final username    = await storage.read('username', 'Guest');
+  final age         = await storage.read('age', 0);
+  final isLoggedIn  = await storage.read('isLoggedIn', false);
+  final score       = await storage.read('score', 0.0);
+  final settings    = await storage.read('settings', <String, dynamic>{});
 
-  print('Username: $username');
-  print('Age: $age');
-  print('Settings: $settings');
+  print('Username: $username');   // Ali
+  print('Age: $age');             // 25
+  print('Logged in: $isLoggedIn');// true
+  print('Score: $score');         // 95.5
+  print('Settings: $settings');   // {theme: dark, language: en, notifications: true}
 
-  // Check if key exists
-  final exists = await storage.contains('username');
-  print('Username exists: $exists');
+  // ✅ Check if a key exists
+  final hasUsername = await storage.contains('username');
+  if (hasUsername) {
+    print('Username is stored in UserDefaults');
+  }
 
-  // Remove key
+  // 🗑️ Remove a specific key
   await storage.remove('username');
 
-  // Clear all data
+  // 🧹 Clear all stored data
   await storage.clear();
 }
 ```
 
-#### 🔍 Check Permission Status (Without Request)
+---
+
+### 🎯 Complete Permission Flow (Recommended Pattern)
 
 ```dart
-Future<void> checkPermissionStatus() async {
-  final permissionMaster = PermissionMasterIos();
-
-  // Check camera permission without requesting
-  final cameraStatus = await permissionMaster.checkPermissionStatus(
-    PermissionType.camera,
-  );
-
-  if (cameraStatus == PermissionStatus.granted) {
-    print('Camera already granted');
-  } else if (cameraStatus == PermissionStatus.notDetermined) {
-    print('Camera not requested yet');
-  }
-}
-```
-
-#### ⚙️ Open App Settings
-
-```dart
-Future<void> openSettings() async {
-  final permissionMaster = PermissionMasterIos();
-
-  // Open iOS Settings app for this app
-  final opened = await permissionMaster.openAppSettings();
-
-  if (opened) {
-    print('Settings opened successfully');
-  } else {
-    print('Failed to open settings');
-  }
-}
-```
-
-#### 🎯 Complete Permission Flow
-
-```dart
-Future<void> requestCameraWithSettings() async {
+Future<void> completePermissionFlowiOS(BuildContext context) async {
   final plugin = PermissionMasterIos();
 
-  // First, check current status
+  // Step 1: Check current status without showing a dialog
   final currentStatus = await plugin.checkPermissionStatus(PermissionType.camera);
 
   if (currentStatus == PermissionStatus.granted) {
-    // Already granted, use camera
+    // Already granted - go straight to the feature
     _openCamera();
     return;
   }
 
-  // Request permission
+  if (currentStatus == PermissionStatus.restricted) {
+    // Cannot be changed - inform the user and stop
+    _showRestrictedDialog(context);
+    return;
+  }
+
+  // Step 2: Request the permission (shows system dialog on first attempt)
   final status = await plugin.requestCameraPermission();
 
-  if (status == PermissionStatus.granted) {
-    // Permission granted, use camera
-    _openCamera();
-  } else if (status == PermissionStatus.denied) {
-    // Show dialog to open settings
-    final shouldOpen = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Camera Permission Required'),
-        content: const Text(
-          'Camera access is required to take photos. '
-          'Please enable it in Settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldOpen == true) {
-      await plugin.openAppSettings();
-    }
-  }
-}
-```
-
----
-
-### Full UI Example
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:permission_master_ios/permission_master_ios.dart';
-
-class PermissionExample extends StatefulWidget {
-  const PermissionExample({super.key});
-
-  @override
-  State<PermissionExample> createState() => _PermissionExampleState();
-}
-
-class _PermissionExampleState extends State<PermissionExample> {
-  final _plugin = PermissionMasterIos();
-  String _status = 'Not requested';
-
-  Future<void> _requestCameraPermission() async {
-    final status = await _plugin.requestCameraPermission();
-    setState(() {
-      _status = 'Camera: ${status.name}';
-    });
-
-    if (status == PermissionStatus.granted) {
-      // Open camera
+  switch (status) {
+    case PermissionStatus.granted:
+      // Granted - proceed with the feature
       _openCamera();
-    } else if (status == PermissionStatus.denied) {
-      _showPermissionDeniedDialog();
-    }
-  }
+      break;
 
-  void _openCamera() {
-    // Your camera logic here
-    print('Opening camera...');
-  }
+    case PermissionStatus.limited:
+      // Only for Photos: partial access granted
+      _openCamera();
+      break;
 
-  void _showPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Permission Required'),
-        content: const Text(
-          'Camera permission is required to take photos. '
-          'Please enable it in Settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Open app settings (use app_settings package)
-            },
-            child: const Text('Settings'),
-          ),
-        ],
+    case PermissionStatus.denied:
+    case PermissionStatus.openSettings:
+      // Denied - guide user to iOS Settings
+      final shouldOpen = await _showGoToSettingsDialog(context);
+      if (shouldOpen == true) {
+        await plugin.openAppSettings();
+      }
+      break;
+
+    case PermissionStatus.restricted:
+      _showRestrictedDialog(context);
+      break;
+
+    case PermissionStatus.error:
+      print('Unexpected error during permission request');
+      break;
+
+    default:
+      break;
+  }
+}
+
+void _openCamera() {
+  print('Opening camera...');
+}
+
+void _showRestrictedDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Access Restricted'),
+      content: const Text(
+        'Camera access is restricted on this device '
+        'due to parental controls or a device policy.',
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Permission Demo')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_status, style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _requestCameraPermission,
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Request Camera Permission'),
-            ),
-          ],
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('OK'),
         ),
+      ],
+    ),
+  );
+}
+
+Future<bool?> _showGoToSettingsDialog(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Camera Permission Required'),
+      content: const Text(
+        'Camera access was denied. '
+        'Please enable it in Settings > Privacy & Security > Camera.',
       ),
-    );
-  }
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Open Settings'),
+        ),
+      ],
+    ),
+  );
 }
 ```
 
 ---
 
-### Requesting Different Permissions
-
-#### All available permissions:
-
-```dart
-final plugin = PermissionMasterIos();
-
-// 📷 Camera
-final cameraStatus = await plugin.requestCameraPermission();
-
-// 🖼️ Photos
-final photosStatus = await plugin.requestPhotosPermission();
-
-// 🎤 Microphone
-final micStatus = await plugin.requestMicrophonePermission();
-
-// 📍 Location
-final locationStatus = await plugin.requestLocationPermission();
-
-// 👥 Contacts
-final contactsStatus = await plugin.requestContactsPermission();
-
-// 📅 Calendar
-final calendarStatus = await plugin.requestCalendarPermission();
-
-// ⏰ Reminders
-final remindersStatus = await plugin.requestRemindersPermission();
-
-// 🔔 Notifications
-final notificationStatus = await plugin.requestNotificationPermission();
-
-// 📶 Bluetooth
-final bluetoothStatus = await plugin.requestBluetoothPermission();
-
-// 🏃 Motion & Fitness
-final motionStatus = await plugin.requestMotionPermission();
-
-// 🗣️ Speech Recognition
-final speechStatus = await plugin.requestSpeechPermission();
-
-// 🎵 Media Library
-final musicStatus = await plugin.requestMusicPermission();
-
-// ❤️ Health Data
-final healthStatus = await plugin.requestHealthPermission();
-```
-
----
-
-### Check Permission Status Without Request
-
-```dart
-final status = await plugin.checkPermissionStatus(PermissionType.camera);
-
-if (status == PermissionStatus.granted) {
-  // Permission granted
-} else if (status == PermissionStatus.denied) {
-  // Permission denied
-}
-```
-
----
-
-### Using Storage
-
-#### Writing and reading data:
-
-```dart
-final storage = plugin.storage;
-
-// ✍️ Write different types of data
-await storage.write('username', 'Ali');
-await storage.write('age', 25);
-await storage.write('isLoggedIn', true);
-await storage.write('score', 95.5);
-await storage.write('settings', {
-  'theme': 'dark',
-  'language': 'fa',
-  'notifications': true
-});
-
-// 📖 Read data with default values
-final username = await storage.read('username', 'Guest');
-final age = await storage.read('age', 0);
-final isLoggedIn = await storage.read('isLoggedIn', false);
-final score = await storage.read('score', 0.0);
-final settings = await storage.read('settings', <String, dynamic>{});
-
-print('Username: $username'); // Ali
-print('Age: $age'); // 25
-print('Logged in: $isLoggedIn'); // true
-print('Score: $score'); // 95.5
-print('Settings: $settings'); // {theme: dark, language: fa, notifications: true}
-
-// ✅ Check if key exists
-final hasUsername = await storage.contains('username');
-if (hasUsername) {
-  print('Username is stored');
-}
-
-// 🗑️ Remove specific key
-await storage.remove('username');
-
-// 🧹 Clear all stored data
-await storage.clear();
-```
-
-#### Practical example - saving user preferences:
+### 🗂️ UserPreferences Class (Practical Storage Example)
 
 ```dart
 class UserPreferences {
-  final storage = PermissionMasterIos().storage;
+  final _storage = PermissionMasterIos().storage;
 
   // Save user preferences
   Future<void> savePreferences({
@@ -642,16 +786,16 @@ class UserPreferences {
     required String language,
     required bool notifications,
   }) async {
-    await storage.write('user_theme', theme);
-    await storage.write('user_language', language);
-    await storage.write('user_notifications', notifications);
+    await _storage.write('user_theme', theme);
+    await _storage.write('user_language', language);
+    await _storage.write('user_notifications', notifications);
   }
 
-  // Load user preferences
+  // Load user preferences with defaults
   Future<Map<String, dynamic>> loadPreferences() async {
-    final theme = await storage.read('user_theme', 'light');
-    final language = await storage.read('user_language', 'en');
-    final notifications = await storage.read('user_notifications', true);
+    final theme         = await _storage.read('user_theme', 'light');
+    final language      = await _storage.read('user_language', 'en');
+    final notifications = await _storage.read('user_notifications', true);
 
     return {
       'theme': theme,
@@ -660,140 +804,96 @@ class UserPreferences {
     };
   }
 
-  // Check if user has saved preferences
+  // Check if preferences have been saved before
   Future<bool> hasPreferences() async {
-    return await storage.contains('user_theme');
+    return await _storage.contains('user_theme');
   }
 
-  // Reset to defaults
+  // Reset all preferences to defaults
   Future<void> resetPreferences() async {
-    await storage.remove('user_theme');
-    await storage.remove('user_language');
-    await storage.remove('user_notifications');
+    await _storage.remove('user_theme');
+    await _storage.remove('user_language');
+    await _storage.remove('user_notifications');
   }
 }
 
 // Usage
-final prefs = UserPreferences();
+Future<void> preferencesExample() async {
+  final prefs = UserPreferences();
 
-// Save
-await prefs.savePreferences(
-  theme: 'dark',
-  language: 'fa',
-  notifications: true,
-);
+  // Save
+  await prefs.savePreferences(
+    theme: 'dark',
+    language: 'en',
+    notifications: true,
+  );
 
-// Load
-final settings = await prefs.loadPreferences();
-print(settings); // {theme: dark, language: fa, notifications: true}
-```
+  // Load
+  final settings = await prefs.loadPreferences();
+  print(settings); // {theme: dark, language: en, notifications: true}
 
----
+  // Check
+  final exists = await prefs.hasPreferences();
+  print('Has saved preferences: $exists'); // true
 
-## Permission Statuses
-
-```dart
-enum PermissionStatus {
-  granted,        // Permission granted
-  denied,         // Permission denied
-  restricted,     // Restricted (parental controls, etc.)
-  limited,        // Limited (partial access, e.g., selected photos in iOS 14+)
-  notDetermined,  // Not requested yet
-  openSettings,   // Needs to open settings
-  unsupported,    // Not supported
-  error           // Error occurred
+  // Reset
+  await prefs.resetPreferences();
 }
 ```
 
 ---
 
-## Important App Store Tips
+## App Store Best Practices
 
-### 1. Clear and Transparent Descriptions
-
-Always provide a clear reason for each permission in `Info.plist`.
-
-### 2. Request at the Right Time
-
-Only request permissions when the user intends to use the feature.
+### ✅ Request at the Right Time
 
 ```dart
-// ❌ Bad: Request at app startup
+// ❌ Bad: Requesting at app startup
 @override
 void initState() {
   super.initState();
-  _plugin.requestCameraPermission();
+  _plugin.requestCameraPermission(); // Never do this
 }
 
-// ✅ Good: Request when the camera button is clicked
-void _openCamera() async {
+// ✅ Good: Request only when the user triggers the feature
+void _onCameraButtonTapped() async {
   final status = await _plugin.requestCameraPermission();
   if (status == PermissionStatus.granted) {
-    // Open camera
+    _openCamera();
   }
 }
 ```
 
-### 3. Handle Permission Denial
+### ✅ Always Handle All Status Cases
 
 ```dart
-Future<void> _handlePermission() async {
-  final status = await _plugin.requestCameraPermission();
+final status = await plugin.requestCameraPermission();
 
-  switch (status) {
-    case PermissionStatus.granted:
-      // Use the feature
-      break;
-    case PermissionStatus.denied:
-      // Show a helpful message
-      _showPermissionDialog();
-      break;
-    case PermissionStatus.restricted:
-      // Inform about restrictions
-      break;
-    default:
-      break;
-  }
-}
-
-void _showPermissionDialog() {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Permission Required'),
-      content: const Text('Camera access is required to take photos. Please enable it in Settings.'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
-        ),
-        TextButton(
-          onPressed: () {
-            // Redirect to settings
-            // Use the app_settings package
-          },
-          child: const Text('Settings'),
-        ),
-      ],
-    ),
-  );
+switch (status) {
+  case PermissionStatus.granted:
+    _openCamera();
+    break;
+  case PermissionStatus.limited:
+    _openCamera(); // Handle limited access if needed
+    break;
+  case PermissionStatus.denied:
+  case PermissionStatus.openSettings:
+    _showSettingsDialog();
+    break;
+  case PermissionStatus.restricted:
+    _showRestrictedMessage();
+    break;
+  case PermissionStatus.error:
+    _showErrorMessage();
+    break;
+  default:
+    break;
 }
 ```
 
-### 4. Privacy Manifest
+### ✅ Privacy Manifest
 
-The `ios/Resources/PrivacyInfo.xcprivacy` file is available to comply with Apple's privacy standards.
-
----
-
-## Full Example
-
-For a complete example, check the `example` folder:
-
-```bash
-cd example
-flutter run
-```
+The `ios/Resources/PrivacyInfo.xcprivacy` file is included to comply with Apple's privacy standards.
 
 ---
 
@@ -801,7 +901,7 @@ flutter run
 
 ### "Permission denied" error
 
-Ensure that permission descriptions are added to `Info.plist`.
+Make sure the permission description key is added to `Info.plist`.
 
 ### "Module not found" error
 
@@ -814,828 +914,16 @@ flutter clean
 flutter pub get
 ```
 
-### Permission not requested
+### Permission dialog not showing
 
-- Verify that permission descriptions in `Info.plist` are correct
-- Fully close and reopen the app
-- In the simulator, check Settings > Privacy
+- Verify the `Info.plist` description keys are correct
+- Fully close and reopen the app (not just hot reload)
+- On Simulator: reset permissions via **Device > Privacy & Security Reset**
 
 ---
 
 ## Requirements
 
-- Flutter: >=3.3.0
-- iOS: >=12.0
-- Dart: ^3.10.8
-
----
-
-
-
-# Permission Master iOS
-
-یک پلاگین Flutter برای مدیریت مجوزهای iOS با قابلیت ذخیره‌سازی داده‌ها.
-
-## ویژگی‌ها
-
-✅ مدیریت کامل مجوزهای iOS  
-✅ پشتیبانی از 13 نوع مجوز مختلف  
-✅ ذخیره‌سازی داده با استفاده از UserDefaults  
-✅ سازگار با استانداردهای App Store  
-✅ پشتیبانی از iOS 12.0 به بالا  
-✅ مدیریت هوشمند تعداد درخواست مجوزها  
-
-## مجوزهای پشتیبانی شده
-
-| مجوز | توضیحات |
-|------|---------|
-| 📷 Camera | دسترسی به دوربین |
-| 🖼️ Photos | دسترسی به کتابخانه تصاویر |
-| 🎤 Microphone | دسترسی به میکروفون |
-| 📍 Location | دسترسی به موقعیت مکانی |
-| 👥 Contacts | دسترسی به مخاطبین |
-| 📅 Calendar | دسترسی به تقویم |
-| ⏰ Reminders | دسترسی به یادآورها |
-| 🔔 Notifications | دسترسی به اعلان‌ها |
-| 📶 Bluetooth | دسترسی به بلوتوث |
-| 🏃 Motion | دسترسی به حرکت و فیتنس |
-| 🗣️ Speech | دسترسی به تشخیص گفتار |
-| 🎵 Music | دسترسی به کتابخانه موسیقی |
-| ❤️ Health | دسترسی به داده‌های سلامت |
-
-## نصب
-
-### 1. افزودن به pubspec.yaml
-
-```yaml
-dependencies:
-  permission_master_ios: ^0.0.1
-```
-
-### 2. نصب پکیج
-
-```bash
-flutter pub get
-```
-
-### 3. تنظیمات iOS
-
-#### الف) افزودن توضیحات مجوزها به Info.plist
-
-فایل `ios/Runner/Info.plist` را باز کنید و توضیحات مجوزهای مورد نیاز خود را اضافه کنید:
-
-```xml
-<dict>
-    <!-- Camera -->
-    <key>NSCameraUsageDescription</key>
-    <string>این برنامه برای گرفتن عکس به دوربین نیاز دارد</string>
-    
-    <!-- Photo Library -->
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>این برنامه برای انتخاب تصاویر به کتابخانه عکس نیاز دارد</string>
-    <key>NSPhotoLibraryAddUsageDescription</key>
-    <string>این برنامه برای ذخیره تصاویر به کتابخانه عکس نیاز دارد</string>
-    
-    <!-- Microphone -->
-    <key>NSMicrophoneUsageDescription</key>
-    <string>این برنامه برای ضبط صدا به میکروفون نیاز دارد</string>
-    
-    <!-- Location -->
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>این برنامه برای نمایش موقعیت شما به دسترسی مکانی نیاز دارد</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>این برنامه برای ردیابی موقعیت به دسترسی مکانی نیاز دارد</string>
-    
-    <!-- Contacts -->
-    <key>NSContactsUsageDescription</key>
-    <string>این برنامه برای نمایش مخاطبین به دسترسی مخاطبین نیاز دارد</string>
-    
-    <!-- Calendar -->
-    <key>NSCalendarsUsageDescription</key>
-    <string>این برنامه برای مدیریت رویدادها به تقویم نیاز دارد</string>
-    
-    <!-- Reminders -->
-    <key>NSRemindersUsageDescription</key>
-    <string>این برنامه برای مدیریت یادآورها نیاز دارد</string>
-    
-    <!-- Bluetooth -->
-    <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>این برنامه برای اتصال به دستگاه‌های بلوتوث نیاز دارد</string>
-    <key>NSBluetoothPeripheralUsageDescription</key>
-    <string>این برنامه برای اتصال به دستگاه‌های بلوتوث نیاز دارد</string>
-    
-    <!-- Motion -->
-    <key>NSMotionUsageDescription</key>
-    <string>این برنامه برای ردیابی فعالیت فیزیکی نیاز دارد</string>
-    
-    <!-- Speech Recognition -->
-    <key>NSSpeechRecognitionUsageDescription</key>
-    <string>این برنامه برای تشخیص گفتار نیاز دارد</string>
-    
-    <!-- Media Library -->
-    <key>NSAppleMusicUsageDescription</key>
-    <string>این برنامه برای دسترسی به کتابخانه موسیقی نیاز دارد</string>
-    
-    <!-- Health -->
-    <key>NSHealthShareUsageDescription</key>
-    <string>این برنامه برای خواندن داده‌های سلامت نیاز دارد</string>
-    <key>NSHealthUpdateUsageDescription</key>
-    <string>این برنامه برای به‌روزرسانی داده‌های سلامت نیاز دارد</string>
-</dict>
-```
-
-#### ب) ایجاد Podfile
-
-اگر فایل `ios/Podfile` وجود ندارد، آن را ایجاد کنید:
-
-```ruby
-# ios/Podfile
-platform :ios, '12.0'
-
-# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
-ENV['COCOAPODS_DISABLE_STATS'] = 'true'
-
-project 'Runner', {
-  'Debug' => :debug,
-  'Profile' => :release,
-  'Release' => :release,
-}
-
-def flutter_root
-  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
-  unless File.exist?(generated_xcode_build_settings_path)
-    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
-  end
-
-  File.foreach(generated_xcode_build_settings_path) do |line|
-    matches = line.match(/FLUTTER_ROOT\=(.*)/)
-    return matches[1].strip if matches
-  end
-  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
-end
-
-require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
-
-flutter_ios_podfile_setup
-
-target 'Runner' do
-  use_frameworks!
-  use_modular_headers!
-
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-end
-
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    flutter_additional_ios_build_settings(target)
-    
-    target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
-    end
-  end
-end
-```
-
-یا به سادگی:
-
-```bash
-flutter create --platforms=ios .
-```
-
-### 4. اجرای Pod Install
-
-```bash
-cd ios
-pod install
-cd ..
-```
-
-## استفاده
-
-### مثال‌های کاربردی
-
-#### 📷 Camera Permission
-
-```dart
-import 'package:permission_master_ios/permission_master_ios.dart';
-
-Future<void> requestCameraAccess() async {
-  final permissionMaster = PermissionMasterIos();
-  
-  final status = await permissionMaster.requestCameraPermission();
-  
-  if (status == PermissionStatus.granted) {
-    // Camera access granted - can use camera
-    print('Camera permission granted - can capture photos/videos');
-  } else if (status == PermissionStatus.denied) {
-    print('Camera permission denied');
-  } else if (status == PermissionStatus.restricted) {
-    print('Camera access restricted (parental controls)');
-  }
-}
-```
-
-#### 🖼️ Photos Permission
-
-```dart
-Future<void> requestPhotosAccess() async {
-  final permissionMaster = PermissionMasterIos();
-  
-  final status = await permissionMaster.requestPhotosPermission();
-  
-  if (status == PermissionStatus.granted) {
-    // Full photo library access
-    print('Photos permission granted - full access');
-  } else if (status == PermissionStatus.limited) {
-    // Limited photo library access (iOS 14+)
-    print('Photos permission limited - selected photos only');
-  } else if (status == PermissionStatus.denied) {
-    print('Photos permission denied');
-  }
-}
-```
-
-#### 🎤 Microphone Permission
-
-```dart
-Future<void> requestMicrophoneAccess() async {
-  final permissionMaster = PermissionMasterIos();
-  
-  final status = await permissionMaster.requestMicrophonePermission();
-  
-  if (status == PermissionStatus.granted) {
-    // Microphone access granted - can record audio
-    print('Microphone permission granted - can record audio');
-  } else if (status == PermissionStatus.denied) {
-    print('Microphone permission denied');
-  }
-}
-```
-
-#### 📍 Location Permission
-
-```dart
-Future<void> requestLocationAccess() async {
-  final permissionMaster = PermissionMasterIos();
-  
-  final status = await permissionMaster.requestLocationPermission();
-  
-  if (status == PermissionStatus.granted) {
-    // Location access granted - can access user location
-    print('Location permission granted - can access GPS');
-  } else if (status == PermissionStatus.denied) {
-    print('Location permission denied');
-  }
-}
-```
-
-#### 🔔 Notification Permission
-
-```dart
-Future<void> requestNotificationAccess() async {
-  final permissionMaster = PermissionMasterIos();
-  
-  final status = await permissionMaster.requestNotificationPermission();
-  
-  if (status == PermissionStatus.granted) {
-    // Can send notifications
-    print('Notification permission granted - can send push notifications');
-  } else if (status == PermissionStatus.denied) {
-    print('Notification permission denied');
-  }
-}
-```
-
-#### 👥 Contacts Permission
-
-```dart
-Future<void> requestContactsAccess() async {
-  final permissionMaster = PermissionMasterIos();
-  
-  final status = await permissionMaster.requestContactsPermission();
-  
-  if (status == PermissionStatus.granted) {
-    // Can access contacts
-    print('Contacts permission granted - can read/write contacts');
-  } else if (status == PermissionStatus.denied) {
-    print('Contacts permission denied');
-  }
-}
-```
-
-#### 📅 Calendar Permission
-
-```dart
-Future<void> requestCalendarAccess() async {
-  final permissionMaster = PermissionMasterIos();
-  
-  final status = await permissionMaster.requestCalendarPermission();
-  
-  if (status == PermissionStatus.granted) {
-    // Can access calendar events
-    print('Calendar permission granted - can manage events');
-  } else if (status == PermissionStatus.denied) {
-    print('Calendar permission denied');
-  }
-}
-```
-
-#### 💾 Storage (UserDefaults)
-
-```dart
-Future<void> useStorage() async {
-  final permissionMaster = PermissionMasterIos();
-  final storage = permissionMaster.storage;
-  
-  // Write data
-  await storage.write('username', 'Ali');
-  await storage.write('age', 25);
-  await storage.write('settings', {'theme': 'dark', 'language': 'fa'});
-  
-  // Read data
-  final username = await storage.read('username', '');
-  final age = await storage.read('age', 0);
-  final settings = await storage.read('settings', <String, dynamic>{});
-  
-  print('Username: $username');
-  print('Age: $age');
-  print('Settings: $settings');
-  
-  // Check if key exists
-  final exists = await storage.contains('username');
-  print('Username exists: $exists');
-  
-  // Remove key
-  await storage.remove('username');
-  
-  // Clear all data
-  await storage.clear();
-}
-```
-
-#### 🔍 Check Permission Status (بدون درخواست)
-
-```dart
-Future<void> checkPermissionStatus() async {
-  final permissionMaster = PermissionMasterIos();
-  
-  // Check camera permission without requesting
-  final cameraStatus = await permissionMaster.checkPermissionStatus(
-    PermissionType.camera,
-  );
-  
-  if (cameraStatus == PermissionStatus.granted) {
-    print('Camera already granted');
-  } else if (cameraStatus == PermissionStatus.notDetermined) {
-    print('Camera not requested yet');
-  }
-}
-```
-
-#### ⚙️ Open App Settings
-
-```dart
-Future<void> openSettings() async {
-  final permissionMaster = PermissionMasterIos();
-  
-  // Open iOS Settings app for this app
-  final opened = await permissionMaster.openAppSettings();
-  
-  if (opened) {
-    print('Settings opened successfully');
-  } else {
-    print('Failed to open settings');
-  }
-}
-```
-
-#### 🎯 Complete Permission Flow
-
-```dart
-Future<void> requestCameraWithSettings() async {
-  final plugin = PermissionMasterIos();
-  
-  // First, check current status
-  final currentStatus = await plugin.checkPermissionStatus(PermissionType.camera);
-  
-  if (currentStatus == PermissionStatus.granted) {
-    // Already granted, use camera
-    _openCamera();
-    return;
-  }
-  
-  // Request permission
-  final status = await plugin.requestCameraPermission();
-  
-  if (status == PermissionStatus.granted) {
-    // Permission granted, use camera
-    _openCamera();
-  } else if (status == PermissionStatus.denied) {
-    // Show dialog to open settings
-    final shouldOpen = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Camera Permission Required'),
-        content: const Text(
-          'Camera access is required to take photos. '
-          'Please enable it in Settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Open Settings'),
-          ),
-        ],
-      ),
-    );
-    
-    if (shouldOpen == true) {
-      await plugin.openAppSettings();
-    }
-  }
-}
-```
-
-### مثال کامل با UI
-
-```dart
-import 'package:flutter/material.dart';
-import 'package:permission_master_ios/permission_master_ios.dart';
-
-class PermissionExample extends StatefulWidget {
-  const PermissionExample({super.key});
-
-  @override
-  State<PermissionExample> createState() => _PermissionExampleState();
-}
-
-class _PermissionExampleState extends State<PermissionExample> {
-  final _plugin = PermissionMasterIos();
-  String _status = 'Not requested';
-
-  Future<void> _requestCameraPermission() async {
-    final status = await _plugin.requestCameraPermission();
-    setState(() {
-      _status = 'Camera: ${status.name}';
-    });
-    
-    if (status == PermissionStatus.granted) {
-      // Open camera
-      _openCamera();
-    } else if (status == PermissionStatus.denied) {
-      _showPermissionDeniedDialog();
-    }
-  }
-  
-  void _openCamera() {
-    // Your camera logic here
-    print('Opening camera...');
-  }
-  
-  void _showPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Permission Required'),
-        content: const Text(
-          'Camera permission is required to take photos. '
-          'Please enable it in Settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Open app settings (use app_settings package)
-            },
-            child: const Text('Settings'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Permission Demo')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(_status, style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _requestCameraPermission,
-              icon: const Icon(Icons.camera_alt),
-              label: const Text('Request Camera Permission'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-```
-
-### درخواست مجوزهای مختلف
-
-#### تمام مجوزهای موجود:
-
-```dart
-final plugin = PermissionMasterIos();
-
-// 📷 Camera
-final cameraStatus = await plugin.requestCameraPermission();
-
-// 🖼️ Photos
-final photosStatus = await plugin.requestPhotosPermission();
-
-// 🎤 Microphone
-final micStatus = await plugin.requestMicrophonePermission();
-
-// 📍 Location
-final locationStatus = await plugin.requestLocationPermission();
-
-// 👥 Contacts
-final contactsStatus = await plugin.requestContactsPermission();
-
-// 📅 Calendar
-final calendarStatus = await plugin.requestCalendarPermission();
-
-// ⏰ Reminders
-final remindersStatus = await plugin.requestRemindersPermission();
-
-// 🔔 Notifications
-final notificationStatus = await plugin.requestNotificationPermission();
-
-// 📶 Bluetooth
-final bluetoothStatus = await plugin.requestBluetoothPermission();
-
-// 🏃 Motion & Fitness
-final motionStatus = await plugin.requestMotionPermission();
-
-// 🗣️ Speech Recognition
-final speechStatus = await plugin.requestSpeechPermission();
-
-// 🎵 Media Library
-final musicStatus = await plugin.requestMusicPermission();
-
-// ❤️ Health Data
-final healthStatus = await plugin.requestHealthPermission();
-```
-
-### بررسی وضعیت مجوز بدون درخواست
-
-```dart
-final status = await plugin.checkPermissionStatus(PermissionType.camera);
-
-if (status == PermissionStatus.granted) {
-  // مجوز داده شده
-} else if (status == PermissionStatus.denied) {
-  // مجوز رد شده
-}
-```
-
-### استفاده از Storage
-
-#### نوشتن و خواندن داده‌ها:
-
-```dart
-final storage = plugin.storage;
-
-// ✍️ Write different types of data
-await storage.write('username', 'Ali');
-await storage.write('age', 25);
-await storage.write('isLoggedIn', true);
-await storage.write('score', 95.5);
-await storage.write('settings', {
-  'theme': 'dark',
-  'language': 'fa',
-  'notifications': true
-});
-
-// 📖 Read data with default values
-final username = await storage.read('username', 'Guest');
-final age = await storage.read('age', 0);
-final isLoggedIn = await storage.read('isLoggedIn', false);
-final score = await storage.read('score', 0.0);
-final settings = await storage.read('settings', <String, dynamic>{});
-
-print('Username: $username'); // Ali
-print('Age: $age'); // 25
-print('Logged in: $isLoggedIn'); // true
-print('Score: $score'); // 95.5
-print('Settings: $settings'); // {theme: dark, language: fa, notifications: true}
-
-// ✅ Check if key exists
-final hasUsername = await storage.contains('username');
-if (hasUsername) {
-  print('Username is stored');
-}
-
-// 🗑️ Remove specific key
-await storage.remove('username');
-
-// 🧹 Clear all stored data
-await storage.clear();
-```
-
-#### مثال عملی - ذخیره تنظیمات کاربر:
-
-```dart
-class UserPreferences {
-  final storage = PermissionMasterIos().storage;
-  
-  // Save user preferences
-  Future<void> savePreferences({
-    required String theme,
-    required String language,
-    required bool notifications,
-  }) async {
-    await storage.write('user_theme', theme);
-    await storage.write('user_language', language);
-    await storage.write('user_notifications', notifications);
-  }
-  
-  // Load user preferences
-  Future<Map<String, dynamic>> loadPreferences() async {
-    final theme = await storage.read('user_theme', 'light');
-    final language = await storage.read('user_language', 'en');
-    final notifications = await storage.read('user_notifications', true);
-    
-    return {
-      'theme': theme,
-      'language': language,
-      'notifications': notifications,
-    };
-  }
-  
-  // Check if user has saved preferences
-  Future<bool> hasPreferences() async {
-    return await storage.contains('user_theme');
-  }
-  
-  // Reset to defaults
-  Future<void> resetPreferences() async {
-    await storage.remove('user_theme');
-    await storage.remove('user_language');
-    await storage.remove('user_notifications');
-  }
-}
-
-// Usage
-final prefs = UserPreferences();
-
-// Save
-await prefs.savePreferences(
-  theme: 'dark',
-  language: 'fa',
-  notifications: true,
-);
-
-// Load
-final settings = await prefs.loadPreferences();
-print(settings); // {theme: dark, language: fa, notifications: true}
-```
-
-## وضعیت‌های مجوز
-
-```dart
-enum PermissionStatus {
-  granted,        // مجوز داده شده
-  denied,         // مجوز رد شده
-  restricted,     // محدود شده (کنترل والدین و...)
-  limited,        // محدود (دسترسی محدود به تصاویر در iOS 14+)
-  notDetermined,  // هنوز تعیین نشده
-  openSettings,   // نیاز به باز کردن تنظیمات
-  unsupported,    // پشتیبانی نمی‌شود
-  error          // خطا رخ داده
-}
-```
-
-## نکات مهم برای App Store
-
-### 1. توضیحات واضح و شفاف
-
-همیشه دلیل واضحی برای درخواست هر مجوز در `Info.plist` ارائه دهید.
-
-### 2. درخواست در زمان مناسب
-
-مجوزها را فقط زمانی درخواست کنید که کاربر قصد استفاده از آن قابلیت را دارد.
-
-```dart
-// ❌ بد: درخواست در شروع برنامه
-@override
-void initState() {
-  super.initState();
-  _plugin.requestCameraPermission();
-}
-
-// ✅ خوب: درخواست هنگام کلیک روی دکمه دوربین
-void _openCamera() async {
-  final status = await _plugin.requestCameraPermission();
-  if (status == PermissionStatus.granted) {
-    // باز کردن دوربین
-  }
-}
-```
-
-### 3. مدیریت رد مجوز
-
-```dart
-Future<void> _handlePermission() async {
-  final status = await _plugin.requestCameraPermission();
-  
-  switch (status) {
-    case PermissionStatus.granted:
-      // استفاده از قابلیت
-      break;
-    case PermissionStatus.denied:
-      // نمایش پیام راهنما
-      _showPermissionDialog();
-      break;
-    case PermissionStatus.restricted:
-      // اطلاع‌رسانی محدودیت
-      break;
-    default:
-      break;
-  }
-}
-
-void _showPermissionDialog() {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('نیاز به مجوز'),
-      content: const Text('برای استفاده از این قابلیت، لطفاً مجوز دوربین را فعال کنید.'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('بستن'),
-        ),
-        TextButton(
-          onPressed: () {
-            // هدایت به تنظیمات
-            // از پکیج app_settings استفاده کنید
-          },
-          child: const Text('تنظیمات'),
-        ),
-      ],
-    ),
-  );
-}
-```
-
-### 4. Privacy Manifest
-
-فایل `ios/Resources/PrivacyInfo.xcprivacy` برای رعایت استانداردهای حریم خصوصی Apple موجود است.
-
-## مثال کامل
-
-برای مشاهده مثال کامل، پوشه `example` را بررسی کنید:
-
-```bash
-cd example
-flutter run
-```
-
-
-
-## مشکلات رایج
-
-### خطای "Permission denied"
-
-مطمئن شوید که توضیحات مجوز در `Info.plist` اضافه شده است.
-
-### خطای "Module not found"
-
-```bash
-cd ios
-pod deintegrate
-pod install
-cd ..
-flutter clean
-flutter pub get
-```
-
-### مجوز درخواست نمی‌شود
-
-- بررسی کنید که توضیحات مجوز در `Info.plist` صحیح باشد
-- برنامه را کاملاً ببندید و دوباره اجرا کنید
-- در شبیه‌ساز، Settings > Privacy را بررسی کنید
-
-## الزامات
-
-- Flutter: >=3.3.0
-- iOS: >=12.0
-- Dart: ^3.10.8
-
-
+- Flutter: `>=3.3.0`
+- iOS: `>=12.0`
+- Dart: `^3.10.8`
